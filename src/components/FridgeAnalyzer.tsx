@@ -99,7 +99,7 @@ const FridgeAnalyzer: React.FC = () => {
             ]
           }
         ],
-        max_tokens: 500
+        max_tokens: 1000
       });
 
       const content = response.choices[0]?.message?.content || '';
