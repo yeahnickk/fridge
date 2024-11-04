@@ -169,16 +169,8 @@ const FridgeAnalyzer: React.FC = () => {
 
   const handleNavigate = (view: 'home' | 'scan' | 'history') => {
     setCurrentView(view);
-    if (view === 'home') {
-      setShowCamera(false);
-      setAnalysis(null);
-    }
     if (view === 'scan') {
       setShowCamera(true);
-    }
-    if (view === 'history') {
-      setShowCamera(false);
-      setAnalysis(null);
     }
   };
 
@@ -347,7 +339,12 @@ const FridgeAnalyzer: React.FC = () => {
         {showCamera && (
           <CameraCapture 
             onCapture={analyzeImage} 
-            setShowCamera={setShowCamera}
+            setShowCamera={(show: boolean) => {
+              setShowCamera(show);
+              if (!show) {
+                setCurrentView('home');
+              }
+            }}
           />
         )}
 
@@ -568,7 +565,11 @@ const FridgeAnalyzer: React.FC = () => {
       <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200">
         <div className="max-w-md mx-auto flex justify-around py-4">
           <button 
-            onClick={() => handleNavigate('home')}
+            onClick={() => {
+              setCurrentView('home');
+              setShowCamera(false);
+              setAnalysis(null);
+            }}
             className="flex flex-col items-center space-y-1"
           >
             <div className={`p-2 rounded-full transition-colors ${
@@ -584,7 +585,11 @@ const FridgeAnalyzer: React.FC = () => {
           </button>
           
           <button 
-            onClick={() => handleNavigate('scan')}
+            onClick={() => {
+              if (!loading && !analysis) {
+                handleNavigate('scan');
+              }
+            }}
             className="flex flex-col items-center space-y-1"
           >
             <div className={`p-2 rounded-full transition-colors ${
@@ -600,7 +605,11 @@ const FridgeAnalyzer: React.FC = () => {
           </button>
 
           <button 
-            onClick={() => setCurrentView('history')}
+            onClick={() => {
+              setCurrentView('history');
+              setShowCamera(false);
+              setAnalysis(null);
+            }}
             className="flex flex-col items-center space-y-1"
           >
             <div className={`p-2 rounded-full transition-colors ${

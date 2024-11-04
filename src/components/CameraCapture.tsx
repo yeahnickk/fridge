@@ -76,22 +76,30 @@ const CameraCapture = ({ onCapture, setShowCamera }: CameraCaptureProps) => {
         ref={videoRef}
         autoPlay
         playsInline
-        className="w-full h-full object-cover"
+        className="h-full w-full object-cover"
       />
       <canvas ref={canvasRef} className="hidden" />
-      <div className="absolute bottom-0 left-0 right-0 p-4 flex justify-center gap-4">
-        <button
-          onClick={handleCancel}
-          className="bg-red-500 text-white px-6 py-2 rounded-full"
-        >
-          Cancel
-        </button>
-        <button
-          onClick={captureImage}
-          className="bg-blue-500 text-white px-6 py-2 rounded-full"
-        >
-          Take Photo
-        </button>
+      <div className="absolute bottom-10 inset-x-0">
+        <div className="container mx-auto px-6">
+          <div className="relative flex items-center justify-center">
+            <button
+              onClick={() => setShowCamera(false)}
+              className="absolute left-0 text-white text-lg font-medium 
+                         px-8 py-3 rounded-full bg-white/20 backdrop-blur-md
+                         active:bg-white/30 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={captureImage}
+              className="w-20 h-20 rounded-full border-4 border-white
+                         flex items-center justify-center
+                         active:scale-95 transition-transform"
+            >
+              <div className="w-16 h-16 rounded-full bg-white"></div>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );
