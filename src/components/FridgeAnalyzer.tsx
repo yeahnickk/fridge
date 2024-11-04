@@ -187,7 +187,12 @@ const FridgeAnalyzer: React.FC = () => {
       id: Date.now().toString(),
       timestamp: Date.now(),
       foundIngredients: scanResult.foundIngredients,
-      recipes: scanResult.recipes
+      recipes: scanResult.recipes.map(recipe => ({
+        title: recipe.title,
+        cookTime: recipe.cookTime,
+        ingredients: recipe.ingredients,
+        instructions: recipe.instructions
+      }))
     };
     
     const updatedHistory = [newHistoryItem, ...history];
@@ -371,6 +376,7 @@ const FridgeAnalyzer: React.FC = () => {
             </div>
 
             {/* Recipe Instructions Modal */}
+            {selectedRecipe && console.log('Modal should render with:', selectedRecipe)}
             {selectedRecipe && (
               <div 
                 className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
@@ -381,6 +387,7 @@ const FridgeAnalyzer: React.FC = () => {
                   onClick={e => e.stopPropagation()}
                 >
                   <div className="p-6 space-y-6">
+                    {console.log('Rendering modal content')}
                     {/* Modal Header */}
                     <div className="flex justify-between items-start">
                       <div>
@@ -403,7 +410,7 @@ const FridgeAnalyzer: React.FC = () => {
                     <div className="space-y-3">
                       <h3 className="text-lg font-medium text-gray-800">Required Ingredients</h3>
                       <div className="flex flex-wrap gap-2">
-                        {selectedRecipe.ingredients.map((ingredient, index) => (
+                        {selectedRecipe.ingredients?.map((ingredient, index) => (
                           <span
                             key={index}
                             className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
@@ -414,24 +421,20 @@ const FridgeAnalyzer: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Instructions Section */}
+                    {/* Instructions Section - Updated */}
                     <div className="space-y-3">
                       <h3 className="text-lg font-medium text-gray-800">Cooking Instructions</h3>
-                      {console.log('Modal instructions:', selectedRecipe.instructions)} {/* Debug log */}
                       <ol className="space-y-4">
-                        {selectedRecipe.instructions && selectedRecipe.instructions.length > 0 ? (
-                          selectedRecipe.instructions.map((instruction, index) => (
-                            <li key={index} className="flex gap-3">
-                              <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 
-                                             rounded-full flex items-center justify-center font-medium text-sm">
-                                {index + 1}
-                              </span>
-                              <span className="text-gray-600 flex-1">{instruction}</span>
-                            </li>
-                          ))
-                        ) : (
-                          <li className="text-gray-500">No instructions available</li>
-                        )}
+                        {console.log('Rendering instructions:', selectedRecipe.instructions)}
+                        {selectedRecipe.instructions && selectedRecipe.instructions.map((instruction, index) => (
+                          <li key={index} className="flex gap-3">
+                            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 
+                                           rounded-full flex items-center justify-center font-medium text-sm">
+                              {index + 1}
+                            </span>
+                            <span className="text-gray-600 flex-1">{instruction.toString()}</span>
+                          </li>
+                        ))}
                       </ol>
                     </div>
                   </div>
@@ -455,24 +458,18 @@ const FridgeAnalyzer: React.FC = () => {
                   key={item.id} 
                   className="bg-white/60 backdrop-blur-lg rounded-2xl p-6 shadow-sm space-y-4"
                 >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-medium text-gray-900">
-                        {new Date(item.timestamp).toLocaleDateString()} at {' '}
-                        {new Date(item.timestamp).toLocaleTimeString()}
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        {item.foundIngredients.length} ingredients found
-                      </p>
-                    </div>
-                    <button 
-                      onClick={() => setSelectedRecipe(item.recipes[0])}
-                      className="text-blue-600 text-sm hover:underline"
-                    >
-                      View Recipes
-                    </button>
+                  {/* Date and Ingredients Count */}
+                  <div>
+                    <h3 className="font-medium text-gray-900">
+                      {new Date(item.timestamp).toLocaleDateString()} at {' '}
+                      {new Date(item.timestamp).toLocaleTimeString()}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      {item.foundIngredients.length} ingredients found
+                    </p>
                   </div>
 
+                  {/* Ingredients Tags */}
                   <div className="flex flex-wrap gap-2">
                     {item.foundIngredients.map((ingredient, index) => (
                       <span
@@ -484,6 +481,7 @@ const FridgeAnalyzer: React.FC = () => {
                     ))}
                   </div>
 
+                  {/* Recipe List */}
                   <div className="space-y-2">
                     {item.recipes.map((recipe, index) => (
                       <button
@@ -557,6 +555,67 @@ const FridgeAnalyzer: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Recipe Modal - Make sure this is at the root level of your component, not nested in the history section */}
+      {selectedRecipe && (
+        <div 
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center"
+          onClick={() => setSelectedRecipe(null)}
+        >
+          <div 
+            className="bg-white rounded-2xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="p-6 space-y-6">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-2xl font-semibold text-gray-900">
+                    {selectedRecipe.title}
+                  </h2>
+                  <span className="text-sm text-gray-500">
+                    {selectedRecipe.cookTime}
+                  </span>
+                </div>
+                <button 
+                  onClick={() => setSelectedRecipe(null)}
+                  className="p-2 hover:bg-gray-100 rounded-full"
+                >
+                  <FiX className="text-xl text-gray-600" />
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium text-gray-800">Required Ingredients</h3>
+                <div className="flex flex-wrap gap-2">
+                  {selectedRecipe.ingredients?.map((ingredient, index) => (
+                    <span
+                      key={index}
+                      className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
+                    >
+                      {ingredient}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="text-lg font-medium text-gray-800">Cooking Instructions</h3>
+                <ol className="space-y-4">
+                  {selectedRecipe.instructions?.map((instruction, index) => (
+                    <li key={index} className="flex gap-3">
+                      <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 
+                                     rounded-full flex items-center justify-center font-medium text-sm">
+                        {index + 1}
+                      </span>
+                      <span className="text-gray-600 flex-1">{instruction}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
