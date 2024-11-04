@@ -57,14 +57,14 @@ const FridgeAnalyzer: React.FC = () => {
 
     try {
       const response = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
+        model: "gpt-4-turbo",
         messages: [
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: "Analyze this image for ingredients that could be used in recipes. Usually the photo will be of a fridge and you are an expert image analyzer who will look at the entire image and detail all of the ingredients found. From those ingredients, suggest up to 5 possible recipes and respond in EXACTLY this format:\n\n" +
+                text: "Analyze this image for ingredients that could be used in recipes. Usually the photo will be of a fridge and you are an expert image analyzer who will look at the entire image and detail all of the ingredients found. From those ingredients, suggest up to 5 possible recipes using only those ingredientsand respond in EXACTLY this format:\n\n" +
                      "FOUND_INGREDIENTS:\n" +
                      "- ingredient1\n" +
                      "- ingredient2\n\n" +
@@ -78,6 +78,9 @@ const FridgeAnalyzer: React.FC = () => {
                      "INSTRUCTIONS:\n" +
                      "- First step\n" +
                      "- Second step\n" +
+                     "- Continue with all necessary steps in logical order\n" +
+                     "- Include preparation, cooking temperatures, and timing\n" +
+                     "- Add as many steps as needed to complete the recipe properly\n" +
                      "RECIPE_END\n\n" +
                      "RECIPE_2\n" +
                      "... (same format)\n" +
@@ -99,7 +102,7 @@ const FridgeAnalyzer: React.FC = () => {
             ]
           }
         ],
-        max_tokens: 1000
+        max_tokens: 1500
       });
 
       const content = response.choices[0]?.message?.content || '';
