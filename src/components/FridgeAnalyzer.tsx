@@ -214,70 +214,131 @@ const FridgeAnalyzer: React.FC = () => {
       {/* Main Content */}
       <div className="pt-24 pb-24 px-4">
         {currentView === 'home' && !showCamera && !loading && !analysis && (
-          <div className="space-y-8">
-            {/* Welcome Message */}
-            <div className="text-center space-y-2">
-              <h2 className="text-2xl font-semibold text-gray-800">
-                Welcome to FridgeAI
+          <div className="space-y-10">
+            {/* Hero Section */}
+            <div className="text-center space-y-4 py-6">
+              <h2 className="text-4xl font-bold">
+                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  FridgeAI
+                </span>
               </h2>
-              <p className="text-gray-600">
-                Turn your ingredients into delicious recipes instantly
+              <p className="text-xl text-gray-600 max-w-md mx-auto">
+                Transform your ingredients into amazing recipes with the power of AI
               </p>
             </div>
 
-            {/* Main Scan Button */}
+            {/* Main Scan Button - Made More Prominent */}
             <button
               onClick={() => handleNavigate('scan')}
-              className="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-2xl p-6 
-                         flex items-center justify-center space-x-3 shadow-lg shadow-blue-500/20
-                         active:scale-95 transition-transform"
+              className="w-full bg-gradient-to-r from-blue-500 via-blue-600 to-purple-500 text-white 
+                         rounded-3xl p-8 flex items-center justify-center space-x-4 shadow-xl 
+                         shadow-blue-500/20 hover:shadow-blue-500/30 transform hover:-translate-y-1 
+                         active:scale-95 transition-all duration-200"
             >
-              <div className="bg-white/20 rounded-xl p-2">
-                <FiCamera className="text-2xl" />
+              <div className="bg-white/20 rounded-xl p-3">
+                <FiCamera className="text-3xl" />
               </div>
-              <span className="text-lg font-medium">Scan Fridge</span>
+              <span className="text-xl font-medium">Scan Your Fridge</span>
             </button>
 
-            {/* Quick Guide Cards */}
-            <div className="space-y-4">
-              <div className="bg-white/60 backdrop-blur-lg rounded-2xl p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                  <span className="mr-2">📸</span> How It Works
+            {/* AI Notice - More Modern Design */}
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-8 space-y-4 border border-blue-100/50">
+              <div className="flex items-center gap-3 mb-2">
+                <div className="bg-blue-500/10 p-3 rounded-2xl">
+                  <span className="text-2xl">🤖</span>
+                </div>
+                <h3 className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  AI Learning in Progress
                 </h3>
-                <ul className="space-y-2 text-gray-600">
-                  <li className="flex items-center">
-                    <span className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-sm mr-3">1</span>
-                    Open your fridge
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-sm mr-3">2</span>
-                    Take a photo of your ingredients
-                  </li>
-                  <li className="flex items-center">
-                    <span className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-sm mr-3">3</span>
-                    Get personalized recipe suggestions
-                  </li>
-                </ul>
               </div>
+              <p className="text-gray-700 leading-relaxed">
+                Our AI is continuously learning to better identify ingredients. For optimal results:
+              </p>
+              <ul className="space-y-3">
+                {[
+                  'Ensure ingredients are clearly visible',
+                  'Remove items from packaging when possible',
+                  'Use good lighting for better detection',
+                  'Arrange items with space between them'
+                ].map((tip, index) => (
+                  <li key={index} className="flex items-center gap-3 text-gray-600">
+                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-blue-600 font-medium">{index + 1}</span>
+                    </div>
+                    {tip}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
-              <div className="bg-white/60 backdrop-blur-lg rounded-2xl p-6 shadow-sm">
-                <h3 className="text-lg font-semibold text-gray-800 mb-3 flex items-center">
-                  <span className="mr-2">✨</span> Features
-                </h3>
-                <ul className="space-y-2 text-gray-600">
-                  <li className="flex items-center">
-                    <FiChevronRight className="text-blue-500 mr-2" />
-                    Smart ingredient detection
-                  </li>
-                  <li className="flex items-center">
-                    <FiChevronRight className="text-blue-500 mr-2" />
-                    Multiple recipe suggestions
-                  </li>
-                  <li className="flex items-center">
-                    <FiChevronRight className="text-blue-500 mr-2" />
-                    Step-by-step instructions
-                  </li>
-                </ul>
+            {/* Features Grid - More Visual */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[
+                {
+                  icon: '🔍',
+                  title: 'Smart Detection',
+                  desc: 'Advanced AI identifies ingredients accurately'
+                },
+                {
+                  icon: '👩‍🍳',
+                  title: 'Recipe Generation',
+                  desc: 'Get multiple recipe suggestions instantly'
+                },
+                {
+                  icon: '📝',
+                  title: 'Detailed Instructions',
+                  desc: 'Step-by-step cooking guidance'
+                },
+                {
+                  icon: '📱',
+                  title: 'Easy to Use',
+                  desc: 'Simple interface for quick results'
+                }
+              ].map((feature, index) => (
+                <div key={index} 
+                     className="bg-white/60 backdrop-blur-lg rounded-3xl p-6 
+                                border border-gray-100 shadow-sm hover:shadow-md 
+                                transition-all duration-200 hover:-translate-y-1">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-gradient-to-br from-blue-50 to-purple-50 
+                                  p-3 rounded-2xl border border-blue-100/50">
+                      <span className="text-2xl">{feature.icon}</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-1">
+                        {feature.title}
+                      </h3>
+                      <p className="text-gray-600 text-sm">
+                        {feature.desc}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* How It Works - More Visual */}
+            <div className="bg-white/60 backdrop-blur-lg rounded-3xl p-8 shadow-sm border border-gray-100">
+              <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-3">
+                <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-2 rounded-xl">
+                  <span className="text-xl">📸</span>
+                </div>
+                How It Works
+              </h3>
+              <div className="space-y-6">
+                {[
+                  'Open your fridge and arrange ingredients visibly',
+                  'Take a clear photo in good lighting',
+                  'Get personalized recipe suggestions instantly'
+                ].map((step, index) => (
+                  <div key={index} className="flex items-center gap-4">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 
+                                  flex items-center justify-center text-white font-medium flex-shrink-0">
+                      {index + 1}
+                    </div>
+                    <p className="text-gray-700">{step}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
