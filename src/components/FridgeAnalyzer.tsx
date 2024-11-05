@@ -16,7 +16,9 @@ import {
   FiBell,
   FiFilter,
   FiLoader,
-  FiArrowLeft
+  FiArrowLeft,
+  FiCheck,
+  FiBookmark
 } from 'react-icons/fi';
 import CameraCapture from './CameraCapture';
 import OpenAI from 'openai';
@@ -70,7 +72,7 @@ const FridgeAnalyzer: React.FC = () => {
   const [showCamera, setShowCamera] = useState(false);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ScanResult | null>(null);
-  const [currentView, setCurrentView] = useState<'home' | 'scan' | 'history' | 'settings' | 'preferences'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'scan' | 'history' | 'settings' | 'saved' | 'preferences'>('home');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>(() => {
     const savedHistory = localStorage.getItem('scanHistory');
@@ -214,7 +216,7 @@ const FridgeAnalyzer: React.FC = () => {
     }
   };
 
-  const handleNavigate = (view: 'home' | 'scan' | 'history' | 'settings' | 'preferences') => {
+  const handleNavigate = (view: 'home' | 'scan' | 'history' | 'settings' | 'saved' | 'preferences') => {
     setCurrentView(view);
     if (view === 'scan') {
       setShowCamera(true);
@@ -266,20 +268,6 @@ const FridgeAnalyzer: React.FC = () => {
                 Transform your ingredients into amazing recipes with the power of AI
               </p>
             </div>
-
-            {/* Main Scan Button - Made More Prominent */}
-            <button
-              onClick={() => handleNavigate('scan')}
-              className="w-full bg-gradient-to-r from-blue-500 via-blue-600 to-purple-500 text-white 
-                         rounded-3xl p-8 flex items-center justify-center space-x-4 shadow-xl 
-                         shadow-blue-500/20 hover:shadow-blue-500/30 transform hover:-translate-y-1 
-                         active:scale-95 transition-all duration-200"
-            >
-              <div className="bg-white/20 rounded-xl p-3">
-                <FiCamera className="text-3xl" />
-              </div>
-              <span className="text-xl font-medium">Scan Your Fridge</span>
-            </button>
 
             {/* AI Notice - More Modern Design */}
             <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-8 space-y-4 border border-blue-100/50">
@@ -768,87 +756,97 @@ const FridgeAnalyzer: React.FC = () => {
       </div>
 
       {/* Bottom Nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200">
-        <div className="max-w-md mx-auto flex justify-around py-4">
-          <button 
-            onClick={() => {
-              setCurrentView('home');
-              setShowCamera(false);
-              setAnalysis(null);
-            }}
-            className="flex flex-col items-center space-y-1"
-          >
-            <div className={`p-2 rounded-full transition-colors ${
-              currentView === 'home' ? 'bg-blue-100' : 'hover:bg-gray-100'
-            }`}>
-              <FiHome className={`text-xl ${
+      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200 z-50">
+        <div className="w-full mx-auto flex items-center relative h-20">
+          {/* Left Side Nav */}
+          <div className="flex flex-1 justify-evenly">
+            <button 
+              onClick={() => {
+                setCurrentView('home');
+                setAnalysis(null);
+                setShowCamera(false);
+              }}
+              className="flex flex-col items-center justify-center flex-1"
+            >
+              <div className={`p-2 rounded-full ${
                 currentView === 'home' ? 'text-blue-600' : 'text-gray-600'
-              }`} />
-            </div>
-            <span className={`text-xs ${
-              currentView === 'home' ? 'text-blue-600' : 'text-gray-600'
-            }`}>Home</span>
-          </button>
-          
-          <button 
-            onClick={() => {
-              if (!loading && !analysis) {
-                handleNavigate('scan');
-              }
-            }}
-            className="flex flex-col items-center space-y-1"
-          >
-            <div className={`p-2 rounded-full transition-colors ${
-              currentView === 'scan' ? 'bg-blue-100' : 'hover:bg-gray-100'
-            }`}>
-              <FiCamera className={`text-xl ${
-                currentView === 'scan' ? 'text-blue-600' : 'text-gray-600'
-              }`} />
-            </div>
-            <span className={`text-xs ${
-              currentView === 'scan' ? 'text-blue-600' : 'text-gray-600'
-            }`}>Scan</span>
-          </button>
+              }`}>
+                <FiHome className="text-2xl" />
+              </div>
+              <span className="text-xs font-medium">Home</span>
+            </button>
 
-          <button 
-            onClick={() => {
-              setCurrentView('history');
-              setShowCamera(false);
-              setAnalysis(null);
-            }}
-            className="flex flex-col items-center space-y-1"
-          >
-            <div className={`p-2 rounded-full transition-colors ${
-              currentView === 'history' ? 'bg-blue-100' : 'hover:bg-gray-100'
-            }`}>
-              <FiClock className={`text-xl ${
+            <button 
+              onClick={() => {
+                setCurrentView('saved');
+                setAnalysis(null);
+                setShowCamera(false);
+              }}
+              className="flex flex-col items-center justify-center flex-1"
+            >
+              <div className={`p-2 rounded-full ${
+                currentView === 'saved' ? 'text-blue-600' : 'text-gray-600'
+              }`}>
+                <FiBookmark className="text-2xl" />
+              </div>
+              <span className="text-xs font-medium">Saved</span>
+            </button>
+          </div>
+
+          {/* Floating Scan Button - Updated size and positioning */}
+          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
+            <button
+              onClick={() => {
+                if (!loading) {
+                  setAnalysis(null);
+                  setShowCamera(true);
+                  setCurrentView('scan');
+                }
+              }}
+              className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 
+                         flex items-center justify-center shadow-lg 
+                         hover:shadow-xl transition-all duration-200 
+                         hover:-translate-y-0.5 active:translate-y-0
+                         border-4 border-white"
+            >
+              <FiCamera className="text-4xl text-white" />
+            </button>
+          </div>
+
+          {/* Right Side Nav */}
+          <div className="flex flex-1 justify-evenly">
+            <button 
+              onClick={() => {
+                setCurrentView('history');
+                setAnalysis(null);
+                setShowCamera(false);
+              }}
+              className="flex flex-col items-center justify-center flex-1"
+            >
+              <div className={`p-2 rounded-full ${
                 currentView === 'history' ? 'text-blue-600' : 'text-gray-600'
-              }`} />
-            </div>
-            <span className={`text-xs ${
-              currentView === 'history' ? 'text-blue-600' : 'text-gray-600'
-            }`}>History</span>
-          </button>
+              }`}>
+                <FiList className="text-2xl" />
+              </div>
+              <span className="text-xs font-medium">History</span>
+            </button>
 
-          <button 
-            onClick={() => {
-              setCurrentView('settings');
-              setShowCamera(false);
-              setAnalysis(null);
-            }}
-            className="flex flex-col items-center space-y-1"
-          >
-            <div className={`p-2 rounded-full transition-colors ${
-              currentView === 'settings' ? 'bg-blue-100' : 'hover:bg-gray-100'
-            }`}>
-              <FiSettings className={`text-xl ${
+            <button 
+              onClick={() => {
+                setCurrentView('settings');
+                setAnalysis(null);
+                setShowCamera(false);
+              }}
+              className="flex flex-col items-center justify-center flex-1"
+            >
+              <div className={`p-2 rounded-full ${
                 currentView === 'settings' ? 'text-blue-600' : 'text-gray-600'
-              }`} />
-            </div>
-            <span className={`text-xs ${
-              currentView === 'settings' ? 'text-blue-600' : 'text-gray-600'
-            }`}>Settings</span>
-          </button>
+              }`}>
+                <FiSettings className="text-2xl" />
+              </div>
+              <span className="text-xs font-medium">Settings</span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -913,48 +911,53 @@ const FridgeAnalyzer: React.FC = () => {
         </div>
       )}
 
-      {/* Add new Preferences View */}
+      {/* Preferences View */}
       {currentView === 'preferences' && (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
           {/* Header */}
-          <div className="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-gray-200 z-10">
-            <div className="px-4 py-4 max-w-lg mx-auto flex items-center justify-between">
+          <div className="bg-white/80 backdrop-blur-lg fixed top-0 left-0 right-0 z-50 border-b border-gray-100">
+            <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
               <button
                 onClick={() => setCurrentView('settings')}
                 className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
               >
                 <FiArrowLeft className="text-xl text-gray-600" />
               </button>
-              <h1 className="text-lg font-semibold text-gray-900">
+              <h1 className="text-lg font-semibold text-blue-600">
                 Dietary Preferences
               </h1>
-              <div className="w-8" /> {/* Spacer for alignment */}
+              <div className="w-10" />
             </div>
           </div>
 
-          {/* Preferences Content */}
-          <div className="max-w-lg mx-auto p-4 space-y-6">
+          {/* Content - Adjusted top padding */}
+          <div className="pt-0 pb-24 px-4 max-w-lg mx-auto space-y-4">
             {/* Info Card */}
-            <div className="bg-blue-50 rounded-2xl p-4 text-blue-700">
-              <p className="text-sm">
-                Select your dietary preferences below. These will be used to prioritize 
-                suitable recipes when scanning ingredients.
-              </p>
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+              <div className="flex items-center gap-3">
+                <div className="bg-blue-50 p-2 rounded-xl">
+                  <FiFilter className="text-xl text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-gray-900 font-medium">
+                    Select your dietary preferences
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Your selections will help us prioritize suitable recipes when analyzing your ingredients.
+                  </p>
+                </div>
+              </div>
             </div>
 
-            {/* Preferences List */}
-            <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
-              {dietaryOptions.map((option, index) => (
+            {/* Preferences Grid */}
+            <div className="grid gap-4">
+              {dietaryOptions.map((option) => (
                 <label
                   key={option.id}
-                  className={`flex items-center justify-between p-4 hover:bg-gray-50 
-                             transition-colors cursor-pointer
-                             ${index !== dietaryOptions.length - 1 ? 'border-b border-gray-100' : ''}`}
+                  className="group relative bg-white rounded-2xl border border-gray-100 
+                           hover:border-blue-200 transition-colors duration-200 
+                           shadow-sm hover:shadow cursor-pointer overflow-hidden"
                 >
-                  <div className="flex flex-col">
-                    <span className="font-medium text-gray-900">{option.label}</span>
-                    <span className="text-sm text-gray-500">{option.description}</span>
-                  </div>
                   <input
                     type="checkbox"
                     checked={dietaryPreferences.includes(option.id)}
@@ -965,8 +968,43 @@ const FridgeAnalyzer: React.FC = () => {
                       setDietaryPreferences(newPreferences);
                       localStorage.setItem('dietaryPreferences', JSON.stringify(newPreferences));
                     }}
-                    className="w-5 h-5 text-blue-600 rounded-lg border-gray-300 
-                               focus:ring-blue-500 transition-colors"
+                    className="peer sr-only"
+                  />
+                  <div className="p-6 flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center
+                                    transition-colors duration-200
+                                    ${dietaryPreferences.includes(option.id)
+                                      ? 'bg-blue-500 text-white'
+                                      : 'bg-blue-50 text-blue-500'}`}
+                      >
+                        <FiFilter className="text-xl" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900 mb-0.5">
+                          {option.label}
+                        </h3>
+                        <p className="text-sm text-gray-500">
+                          {option.description}
+                        </p>
+                      </div>
+                    </div>
+                    <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center
+                                      transition-all duration-200
+                                      ${dietaryPreferences.includes(option.id)
+                                        ? 'border-blue-500 bg-blue-500'
+                                        : 'border-gray-300 bg-white'}`}
+                    >
+                      {dietaryPreferences.includes(option.id) && (
+                        <FiCheck className="text-white text-sm" />
+                      )}
+                    </div>
+                  </div>
+                  <div className={`absolute bottom-0 left-0 right-0 h-1 
+                                transition-all duration-200
+                                ${dietaryPreferences.includes(option.id)
+                                  ? 'bg-gradient-to-r from-blue-500 to-purple-500'
+                                  : 'bg-transparent'}`} 
                   />
                 </label>
               ))}
@@ -974,8 +1012,12 @@ const FridgeAnalyzer: React.FC = () => {
 
             {/* Selected Count */}
             {dietaryPreferences.length > 0 && (
-              <div className="text-center text-sm text-gray-500">
-                {dietaryPreferences.length} preference{dietaryPreferences.length !== 1 ? 's' : ''} selected
+              <div className="text-center">
+                <span className="inline-flex items-center gap-2 px-4 py-2 
+                              bg-blue-50 text-blue-700 rounded-full text-sm font-medium">
+                  <FiCheck className="text-blue-500" />
+                  {dietaryPreferences.length} preference{dietaryPreferences.length !== 1 ? 's' : ''} selected
+                </span>
               </div>
             )}
           </div>
