@@ -18,7 +18,8 @@ import {
   FiLoader,
   FiArrowLeft,
   FiCheck,
-  FiBookmark
+  FiBookmark,
+  FiZap
 } from 'react-icons/fi';
 import CameraCapture from './CameraCapture';
 import OpenAI from 'openai';
@@ -67,6 +68,12 @@ const FridgeAnalyzer: React.FC = () => {
   useEffect(() => {
     console.log('Component mounted');
     console.log('OpenAI Key exists:', !!import.meta.env.VITE_OPENAI_API_KEY);
+
+    return () => {
+      setAnalysis(null);
+      setSelectedRecipe(null);
+      setShowCamera(false);
+    };
   }, []);
 
   const [showCamera, setShowCamera] = useState(false);
@@ -255,118 +262,115 @@ const FridgeAnalyzer: React.FC = () => {
 
       {/* Main Content */}
       <div className="pt-24 pb-24 px-4">
-        {currentView === 'home' && !showCamera && !loading && !analysis && (
-          <div className="space-y-10">
+        {currentView === 'home' && (
+          <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
             {/* Hero Section */}
-            <div className="text-center space-y-4 py-6">
-              <h2 className="text-4xl font-bold">
-                <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  FridgeAI
-                </span>
-              </h2>
-              <p className="text-xl text-gray-600 max-w-md mx-auto">
-                Transform your ingredients into amazing recipes with the power of AI
-              </p>
-            </div>
-
-            {/* AI Notice - More Modern Design */}
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-3xl p-8 space-y-4 border border-blue-100/50">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="bg-blue-500/10 p-3 rounded-2xl">
-                  <span className="text-2xl">🤖</span>
+            <div className="px-4 pt-8 pb-12">
+              <div className="max-w-lg mx-auto space-y-6">
+                <div className="space-y-2 text-center">
+                  <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 
+                                bg-clip-text text-transparent">
+                    What's in your fridge?
+                  </h1>
+                  <p className="text-gray-600 text-lg">
+                    Turn your ingredients into delicious recipes instantly
+                  </p>
                 </div>
-                <h3 className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                  AI Learning in Progress
-                </h3>
-              </div>
-              <p className="text-gray-700 leading-relaxed">
-                Our AI is continuously learning to better identify ingredients. For optimal results:
-              </p>
-              <ul className="space-y-3">
-                {[
-                  'Ensure ingredients are clearly visible',
-                  'Remove items from packaging when possible',
-                  'Use good lighting for better detection',
-                  'Arrange items with space between them'
-                ].map((tip, index) => (
-                  <li key={index} className="flex items-center gap-3 text-gray-600">
-                    <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-blue-600 font-medium">{index + 1}</span>
-                    </div>
-                    {tip}
-                  </li>
-                ))}
-              </ul>
-            </div>
 
-            {/* Features Grid - More Visual */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {[
-                {
-                  icon: '🔍',
-                  title: 'Smart Detection',
-                  desc: 'Advanced AI identifies ingredients accurately'
-                },
-                {
-                  icon: '👩‍🍳',
-                  title: 'Recipe Generation',
-                  desc: 'Get multiple recipe suggestions instantly'
-                },
-                {
-                  icon: '📝',
-                  title: 'Detailed Instructions',
-                  desc: 'Step-by-step cooking guidance'
-                },
-                {
-                  icon: '📱',
-                  title: 'Easy to Use',
-                  desc: 'Simple interface for quick results'
-                }
-              ].map((feature, index) => (
-                <div key={index} 
-                     className="bg-white/60 backdrop-blur-lg rounded-3xl p-6 
-                                border border-gray-100 shadow-sm hover:shadow-md 
-                                transition-all duration-200 hover:-translate-y-1">
-                  <div className="flex items-start gap-4">
-                    <div className="bg-gradient-to-br from-blue-50 to-purple-50 
-                                  p-3 rounded-2xl border border-blue-100/50">
-                      <span className="text-2xl">{feature.icon}</span>
+                {/* Feature Cards */}
+                <div className="grid gap-4 mt-8">
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100
+                                hover:shadow-md transition-all duration-200">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 bg-blue-50 rounded-xl">
+                        <FiCamera className="text-xl text-blue-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900 mb-1">
+                          Smart Scanning
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          Just snap a photo of your fridge and let AI do the work
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100
+                                hover:shadow-md transition-all duration-200">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 bg-purple-50 rounded-xl">
+                        <FiZap className="text-xl text-purple-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900 mb-1">
+                          Instant Recipes
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          Get personalized recipe suggestions in seconds
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100
+                                hover:shadow-md transition-all duration-200">
+                    <div className="flex items-start gap-4">
+                      <div className="p-3 bg-green-50 rounded-xl">
+                        <FiFilter className="text-xl text-green-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-gray-900 mb-1">
+                          Dietary Preferences
+                        </h3>
+                        <p className="text-gray-600 text-sm">
+                          Recipes tailored to your dietary needs
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* How It Works */}
+                <div className="mt-12 space-y-4">
+                  <h2 className="text-xl font-semibold text-gray-900 text-center">
+                    How It Works
+                  </h2>
+                  <div className="grid gap-6">
+                    {[
+                      { step: '1', text: 'Open your fridge' },
+                      { step: '2', text: 'Take a photo' },
+                      { step: '3', text: 'Get instant recipes' }
+                    ].map((item, index) => (
+                      <div key={index} className="flex items-center gap-4">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center 
+                                      justify-center text-blue-600 font-medium">
+                          {item.step}
+                        </div>
+                        <span className="text-gray-700">{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* AI Notice */}
+                <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-6 
+                              border border-blue-100/50 mt-8">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2 bg-white/50 rounded-xl">
+                      <FiZap className="text-xl text-blue-600" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
-                        {feature.title}
+                      <h3 className="font-medium text-gray-900 mb-1">
+                        Powered by AI
                       </h3>
                       <p className="text-gray-600 text-sm">
-                        {feature.desc}
+                        Our advanced AI technology identifies ingredients and suggests 
+                        the perfect recipes for you
                       </p>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-
-            {/* How It Works - More Visual */}
-            <div className="bg-white/60 backdrop-blur-lg rounded-3xl p-8 shadow-sm border border-gray-100">
-              <h3 className="text-xl font-semibold text-gray-900 mb-6 flex items-center gap-3">
-                <div className="bg-gradient-to-br from-blue-50 to-purple-50 p-2 rounded-xl">
-                  <span className="text-xl">📸</span>
-                </div>
-                How It Works
-              </h3>
-              <div className="space-y-6">
-                {[
-                  'Open your fridge and arrange ingredients visibly',
-                  'Take a clear photo in good lighting',
-                  'Get personalized recipe suggestions instantly'
-                ].map((step, index) => (
-                  <div key={index} className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 
-                                  flex items-center justify-center text-white font-medium flex-shrink-0">
-                      {index + 1}
-                    </div>
-                    <p className="text-gray-700">{step}</p>
-                  </div>
-                ))}
               </div>
             </div>
           </div>
@@ -425,83 +429,85 @@ const FridgeAnalyzer: React.FC = () => {
         )}
 
         {analysis && (
-          <div className="space-y-6">
-            {/* Results Header */}
-            <div className="bg-white/80 backdrop-blur-lg fixed top-0 left-0 right-0 z-50">
-              <div className="px-4 py-6">
-                <h1 className="text-2xl font-semibold text-gray-900">Scan Results</h1>
+          <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
+            {/* Header */}
+            <div className="bg-white/80 backdrop-blur-lg sticky top-0 z-40 border-b border-gray-100">
+              <div className="max-w-lg mx-auto px-4 py-4">
+                <h1 className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 
+                              bg-clip-text text-transparent">
+                  Scan Results
+                </h1>
               </div>
             </div>
 
-            <div className="pt-20 space-y-6">
-              {/* Found Ingredients Module */}
-              {analysis.foundIngredients && analysis.foundIngredients.length > 0 && (
-                <div className="bg-white/60 backdrop-blur-lg rounded-2xl p-6 shadow-sm">
-                  <h2 className="text-lg font-semibold text-gray-900 mb-4">
-                    Found Ingredients
-                  </h2>
-                  <div className="flex flex-wrap gap-2">
+            <div className="max-w-lg mx-auto px-4 py-6 space-y-8">
+              {/* Found Ingredients Card */}
+              <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+                <div className="p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-gray-900">Found Ingredients</h2>
+                    <span className="px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-sm font-medium">
+                      {analysis.foundIngredients.length} items
+                    </span>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-2">
                     {analysis.foundIngredients.map((ingredient, index) => (
-                      <span
+                      <div 
                         key={index}
-                        className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
+                        className="flex items-center gap-2 p-3 bg-gray-50 rounded-xl"
                       >
-                        {ingredient}
-                      </span>
+                        <span className="text-blue-500">•</span>
+                        <span className="text-gray-700">{ingredient}</span>
+                      </div>
                     ))}
                   </div>
                 </div>
-              )}
+              </div>
 
-              {/* Recipe Cards */}
-              {analysis.recipes && analysis.recipes.length > 0 && (
+              {/* Suggested Recipes */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between px-1">
+                  <h2 className="text-lg font-semibold text-gray-900">Suggested Recipes</h2>
+                  <span className="px-3 py-1 bg-purple-50 text-purple-600 rounded-full text-sm font-medium">
+                    {analysis.recipes.length} recipes
+                  </span>
+                </div>
+
                 <div className="space-y-4">
-                  <h2 className="text-lg font-semibold text-gray-900 px-1">
-                    Possible Recipes ({analysis.recipes.length})
-                  </h2>
                   {analysis.recipes.map((recipe, index) => (
                     <button
                       key={index}
-                      onClick={() => {
-                        console.log('Setting selected recipe:', recipe);
-                        setSelectedRecipe(recipe);
-                      }}
-                      className="w-full bg-white rounded-2xl p-6 text-left 
-                                 hover:bg-gray-50 hover:shadow-lg transform 
-                                 hover:-translate-y-0.5 transition-all duration-200 
-                                 ease-in-out border border-gray-100"
+                      onClick={() => setSelectedRecipe(recipe)}
+                      className="w-full bg-white rounded-2xl p-6 text-left hover:bg-gray-50 
+                         transition-all duration-200 shadow-sm hover:shadow-md 
+                         border border-gray-100"
                     >
                       <div className="space-y-4">
                         <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="text-xl font-semibold text-gray-900">
+                          <div className="space-y-1">
+                            <h3 className="text-lg font-medium text-gray-900">
                               {recipe.title}
                             </h3>
-                            <span className="text-sm text-gray-500 flex items-center gap-1">
-                              <FiClock className="text-blue-500" />
-                              {recipe.cookTime}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Dietary Labels - Updated with filter */}
-                        {recipe.dietaryLabels && recipe.dietaryLabels.length > 0 && (
-                          <div className="flex flex-wrap gap-2">
-                            {recipe.dietaryLabels
-                              .filter(label => label.toLowerCase() !== 'non specific')
-                              .map((label, idx) => (
-                                <span
+                            <div className="flex items-center gap-2">
+                              <span className="flex items-center gap-1 text-sm text-gray-500">
+                                <FiClock className="text-blue-500" />
+                                {recipe.cookTime}
+                              </span>
+                              {recipe.dietaryLabels?.map((label, idx) => (
+                                <span 
                                   key={idx}
-                                  className="px-2 py-1 bg-green-50 text-green-700 
+                                  className="px-2 py-0.5 bg-green-50 text-green-600 
                                            rounded-full text-xs font-medium"
                                 >
                                   {label}
                                 </span>
-                            ))}
+                              ))}
+                            </div>
                           </div>
-                        )}
+                          <FiChevronRight className="text-gray-400" />
+                        </div>
 
-                        {/* Ingredients Preview */}
                         <div className="flex flex-wrap gap-2">
                           {recipe.ingredients.slice(0, 3).map((ingredient, idx) => (
                             <span
@@ -522,75 +528,8 @@ const FridgeAnalyzer: React.FC = () => {
                     </button>
                   ))}
                 </div>
-              )}
-            </div>
-
-            {/* Recipe Instructions Modal */}
-            {selectedRecipe && console.log('Modal should render with:', selectedRecipe)}
-            {selectedRecipe && (
-              <div 
-                className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center"
-                onClick={() => setSelectedRecipe(null)}
-              >
-                <div 
-                  className="bg-white rounded-2xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto"
-                  onClick={e => e.stopPropagation()}
-                >
-                  <div className="p-6 space-y-6">
-                    {console.log('Rendering modal content')}
-                    {/* Modal Header */}
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h2 className="text-2xl font-semibold text-gray-900">
-                          {selectedRecipe.title}
-                        </h2>
-                        <span className="text-sm text-gray-500">
-                          {selectedRecipe.cookTime}
-                        </span>
-                      </div>
-                      <button 
-                        onClick={() => setSelectedRecipe(null)}
-                        className="p-2 hover:bg-gray-100 rounded-full"
-                      >
-                        <FiX className="text-xl text-gray-600" />
-                      </button>
-                    </div>
-
-                    {/* Ingredients Section */}
-                    <div className="space-y-3">
-                      <h3 className="text-lg font-medium text-gray-800">Required Ingredients</h3>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedRecipe.ingredients?.map((ingredient, index) => (
-                          <span
-                            key={index}
-                            className="px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
-                          >
-                            {ingredient}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Instructions Section - Updated */}
-                    <div className="space-y-3">
-                      <h3 className="text-lg font-medium text-gray-800">Cooking Instructions</h3>
-                      <ol className="space-y-4">
-                        {console.log('Rendering instructions:', selectedRecipe.instructions)}
-                        {selectedRecipe.instructions && selectedRecipe.instructions.map((instruction, index) => (
-                          <li key={index} className="flex gap-3">
-                            <span className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-700 
-                                           rounded-full flex items-center justify-center font-medium text-sm">
-                              {index + 1}
-                            </span>
-                            <span className="text-gray-600 flex-1">{instruction.toString()}</span>
-                          </li>
-                        ))}
-                      </ol>
-                    </div>
-                  </div>
-                </div>
               </div>
-            )}
+            </div>
           </div>
         )}
 
@@ -756,108 +695,112 @@ const FridgeAnalyzer: React.FC = () => {
       </div>
 
       {/* Bottom Nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200 z-50">
-        <div className="w-full mx-auto flex items-center relative h-20">
-          {/* Left Side Nav */}
-          <div className="flex flex-1 justify-evenly">
-            <button 
-              onClick={() => {
-                setCurrentView('home');
-                setAnalysis(null);
-                setShowCamera(false);
-              }}
-              className="flex flex-col items-center justify-center flex-1"
-            >
-              <div className={`p-2 rounded-full ${
-                currentView === 'home' ? 'text-blue-600' : 'text-gray-600'
-              }`}>
-                <FiHome className="text-2xl" />
-              </div>
-              <span className="text-xs font-medium">Home</span>
-            </button>
-
-            <button 
-              onClick={() => {
-                setCurrentView('saved');
-                setAnalysis(null);
-                setShowCamera(false);
-              }}
-              className="flex flex-col items-center justify-center flex-1"
-            >
-              <div className={`p-2 rounded-full ${
-                currentView === 'saved' ? 'text-blue-600' : 'text-gray-600'
-              }`}>
-                <FiBookmark className="text-2xl" />
-              </div>
-              <span className="text-xs font-medium">Saved</span>
-            </button>
-          </div>
-
-          {/* Floating Scan Button - Updated size and positioning */}
-          <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
-            <button
-              onClick={() => {
-                if (!loading) {
+      {!showCamera && (
+        <div className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-t border-gray-200 z-50">
+          <div className="w-full mx-auto flex items-center relative h-20">
+            {/* Left Side Nav */}
+            <div className="flex flex-1 justify-evenly">
+              <button 
+                onClick={() => {
+                  setCurrentView('home');
                   setAnalysis(null);
-                  setShowCamera(true);
-                  setCurrentView('scan');
-                }
-              }}
-              className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 
-                         flex items-center justify-center shadow-lg 
-                         hover:shadow-xl transition-all duration-200 
-                         hover:-translate-y-0.5 active:translate-y-0
-                         border-4 border-white"
-            >
-              <FiCamera className="text-4xl text-white" />
-            </button>
-          </div>
+                  setShowCamera(false);
+                }}
+                className="flex flex-col items-center justify-center flex-1"
+              >
+                <div className={`p-2 rounded-full ${
+                  currentView === 'home' ? 'text-blue-600' : 'text-gray-600'
+                }`}>
+                  <FiHome className="text-2xl" />
+                </div>
+                <span className="text-xs font-medium">Home</span>
+              </button>
 
-          {/* Right Side Nav */}
-          <div className="flex flex-1 justify-evenly">
-            <button 
-              onClick={() => {
-                setCurrentView('history');
-                setAnalysis(null);
-                setShowCamera(false);
-              }}
-              className="flex flex-col items-center justify-center flex-1"
-            >
-              <div className={`p-2 rounded-full ${
-                currentView === 'history' ? 'text-blue-600' : 'text-gray-600'
-              }`}>
-                <FiList className="text-2xl" />
-              </div>
-              <span className="text-xs font-medium">History</span>
-            </button>
+              <button 
+                onClick={() => {
+                  setCurrentView('saved');
+                  setAnalysis(null);
+                  setShowCamera(false);
+                }}
+                className="flex flex-col items-center justify-center flex-1"
+              >
+                <div className={`p-2 rounded-full ${
+                  currentView === 'saved' ? 'text-blue-600' : 'text-gray-600'
+                }`}>
+                  <FiBookmark className="text-2xl" />
+                </div>
+                <span className="text-xs font-medium">Saved</span>
+              </button>
+            </div>
 
-            <button 
-              onClick={() => {
-                setCurrentView('settings');
-                setAnalysis(null);
-                setShowCamera(false);
-              }}
-              className="flex flex-col items-center justify-center flex-1"
-            >
-              <div className={`p-2 rounded-full ${
-                currentView === 'settings' ? 'text-blue-600' : 'text-gray-600'
-              }`}>
-                <FiSettings className="text-2xl" />
-              </div>
-              <span className="text-xs font-medium">Settings</span>
-            </button>
+            {/* FAB */}
+            <div className="absolute -top-8 left-1/2 transform -translate-x-1/2">
+              <button
+                onClick={() => {
+                  if (!loading) {
+                    setAnalysis(null);
+                    setShowCamera(true);
+                    setCurrentView('scan');
+                  }
+                }}
+                className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 
+                           flex items-center justify-center shadow-lg 
+                           hover:shadow-xl transition-all duration-200 
+                           hover:-translate-y-0.5 active:translate-y-0
+                           border-4 border-white"
+              >
+                <FiCamera className="text-4xl text-white" />
+              </button>
+            </div>
+
+            {/* Right Side Nav */}
+            <div className="flex flex-1 justify-evenly">
+              <button 
+                onClick={() => {
+                  setCurrentView('history');
+                  setAnalysis(null);
+                  setShowCamera(false);
+                }}
+                className="flex flex-col items-center justify-center flex-1"
+              >
+                <div className={`p-2 rounded-full ${
+                  currentView === 'history' ? 'text-blue-600' : 'text-gray-600'
+                }`}>
+                  <FiList className="text-2xl" />
+                </div>
+                <span className="text-xs font-medium">History</span>
+              </button>
+
+              <button 
+                onClick={() => {
+                  setCurrentView('settings');
+                  setAnalysis(null);
+                  setShowCamera(false);
+                }}
+                className="flex flex-col items-center justify-center flex-1"
+              >
+                <div className={`p-2 rounded-full ${
+                  currentView === 'settings' ? 'text-blue-600' : 'text-gray-600'
+                }`}>
+                  <FiSettings className="text-2xl" />
+                </div>
+                <span className="text-xs font-medium">Settings</span>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Recipe Modal - Make sure this is at the root level of your component, not nested in the history section */}
+      {/* SINGLE Recipe Modal - Move this OUTSIDE of the analysis check */}
       {selectedRecipe && (
         <div 
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[100] flex items-center justify-center"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 
+                     flex items-end sm:items-center justify-center"
           onClick={() => setSelectedRecipe(null)}
         >
           <div 
-            className="bg-white rounded-2xl w-full max-w-lg mx-4 max-h-[80vh] overflow-y-auto"
+            className="bg-white w-full max-w-lg max-h-[85vh] rounded-t-3xl sm:rounded-3xl 
+                       overflow-hidden shadow-xl m-0 sm:m-4"
             onClick={e => e.stopPropagation()}
           >
             <div className="p-6 space-y-6">
