@@ -6,7 +6,15 @@ import {
   FiChevronRight,
   FiClock,
   FiList,
-  FiHome 
+  FiHome,
+  FiSettings,
+  FiUser,
+  FiToggleLeft,
+  FiInfo,
+  FiMoon,
+  FiGlobe,
+  FiBell,
+  FiFilter
 } from 'react-icons/fi';
 import CameraCapture from './CameraCapture';
 import OpenAI from 'openai';
@@ -30,6 +38,21 @@ interface HistoryItem {
   recipes: Recipe[];
 }
 
+interface DietaryPreference {
+  id: string;
+  label: string;
+  description: string;
+}
+
+const dietaryOptions: DietaryPreference[] = [
+  { id: 'vegetarian', label: 'Vegetarian', description: 'No meat or fish' },
+  { id: 'vegan', label: 'Vegan', description: 'No animal products' },
+  { id: 'glutenFree', label: 'Gluten Free', description: 'No gluten-containing ingredients' },
+  { id: 'dairyFree', label: 'Dairy Free', description: 'No dairy products' },
+  { id: 'nutFree', label: 'Nut Free', description: 'No nuts or nut products' },
+  { id: 'lowCarb', label: 'Low Carb', description: 'Reduced carbohydrates' },
+];
+
 const openai = new OpenAI({
   apiKey: import.meta.env.VITE_OPENAI_API_KEY,
   dangerouslyAllowBrowser: true
@@ -44,11 +67,19 @@ const FridgeAnalyzer: React.FC = () => {
   const [showCamera, setShowCamera] = useState(false);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ScanResult | null>(null);
-  const [currentView, setCurrentView] = useState<'home' | 'scan' | 'history'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'scan' | 'history' | 'settings'>('home');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>(() => {
     const savedHistory = localStorage.getItem('scanHistory');
     return savedHistory ? JSON.parse(savedHistory) : [];
+  });
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('darkMode');
+    return saved ? JSON.parse(saved) : false;
+  });
+  const [dietaryPreferences, setDietaryPreferences] = useState<string[]>(() => {
+    const saved = localStorage.getItem('dietaryPreferences');
+    return saved ? JSON.parse(saved) : [];
   });
 
   const analyzeImage = async (base64Image: string) => {
@@ -56,6 +87,15 @@ const FridgeAnalyzer: React.FC = () => {
     setLoading(true);
 
     try {
+      // Create dietary restrictions string
+      const dietaryString = dietaryPreferences.length > 0
+        ? `IMPORTANT DIETARY REQUIREMENTS: The first 3 recipes must be suitable for: ${
+            dietaryPreferences.map(id => 
+              dietaryOptions.find(opt => opt.id === id)?.label
+            ).join(', ')
+          }. \n`
+        : '';
+
       const response = await openai.chat.completions.create({
         model: "gpt-4-turbo",
         messages: [
@@ -64,7 +104,8 @@ const FridgeAnalyzer: React.FC = () => {
             content: [
               {
                 type: "text",
-                text: "Analyze this image for ingredients that could be used in recipes. Usually the photo will be of a fridge and you are an expert image analyzer who will look at the entire image and detail all of the ingredients found. From those ingredients, suggest up to 5 possible recipes using only those ingredientsand respond in EXACTLY this format:\n\n" +
+                text: "Analyze this image for ingredients that could be used in recipes, include all ingredients found irregardless of dietery restrictions. Usually the photo will be of a fridge and you are an expert image analyzer who will look at the entire image and detail all of the ingredients found. From those ingredients, suggest up to 5 possible recipes using only those ingredientsand respond in EXACTLY this format:\n\n" +
+                     dietaryString +
                      "FOUND_INGREDIENTS:\n" +
                      "- ingredient1\n" +
                      "- ingredient2\n\n" +
@@ -167,7 +208,7 @@ const FridgeAnalyzer: React.FC = () => {
     }
   };
 
-  const handleNavigate = (view: 'home' | 'scan' | 'history') => {
+  const handleNavigate = (view: 'home' | 'scan' | 'history' | 'settings') => {
     setCurrentView(view);
     if (view === 'scan') {
       setShowCamera(true);
@@ -559,6 +600,132 @@ const FridgeAnalyzer: React.FC = () => {
             )}
           </div>
         )}
+
+        {currentView === 'settings' && (
+          <div className="space-y-6">
+            <div className="bg-white/60 backdrop-blur-lg rounded-2xl">
+              {/* User Profile Section */}
+              <div className="p-6 border-b border-gray-100">
+                <div className="flex items-center gap-4">
+                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center">
+                    <FiUser className="text-2xl text-blue-600" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900">Guest User</h2>
+                    <p className="text-sm text-gray-500">Sign in to sync your recipes</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Preferences Section */}
+              <div className="divide-y divide-gray-100">
+                {/* App Preferences */}
+                <div className="p-6">
+                  <h3 className="text-sm font-medium text-gray-500 mb-4">APP PREFERENCES</h3>
+                  <div className="space-y-4">
+                    <button className="w-full flex items-center justify-between py-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
+                          <FiMoon className="text-blue-600" />
+                        </div>
+                        <span className="text-gray-700">Dark Mode</span>
+                      </div>
+                      <div className="relative">
+                        <input 
+                          type="checkbox"
+                          checked={darkMode}
+                          onChange={(e) => {
+                            setDarkMode(e.target.checked);
+                            localStorage.setItem('darkMode', JSON.stringify(e.target.checked));
+                          }}
+                          className="sr-only"
+                        />
+                        <div className={`w-11 h-6 rounded-full transition-colors ${
+                          darkMode ? 'bg-blue-600' : 'bg-gray-200'
+                        }`}>
+                          <div className={`w-5 h-5 rounded-full bg-white shadow transform transition-transform ${
+                            darkMode ? 'translate-x-6' : 'translate-x-1'
+                          }`} />
+                        </div>
+                      </div>
+                    </button>
+
+                    <button className="w-full flex items-center justify-between py-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
+                          <FiBell className="text-blue-600" />
+                        </div>
+                        <span className="text-gray-700">Notifications</span>
+                      </div>
+                      <FiChevronRight className="text-gray-400" />
+                    </button>
+
+                    <button className="w-full flex items-center justify-between py-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
+                          <FiGlobe className="text-blue-600" />
+                        </div>
+                        <span className="text-gray-700">Language</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-500">English</span>
+                        <FiChevronRight className="text-gray-400" />
+                      </div>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Dietary Preferences */}
+                <div className="p-6">
+                  <h3 className="text-sm font-medium text-gray-500 mb-4">DIETARY PREFERENCES</h3>
+                  <div className="space-y-4">
+                    {dietaryOptions.map((option) => (
+                      <label key={option.id} className="flex items-center justify-between py-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
+                            <FiFilter className="text-blue-600" />
+                          </div>
+                          <div>
+                            <span className="text-gray-700">{option.label}</span>
+                            <p className="text-xs text-gray-500">{option.description}</p>
+                          </div>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={dietaryPreferences.includes(option.id)}
+                          onChange={(e) => {
+                            const newPreferences = e.target.checked
+                              ? [...dietaryPreferences, option.id]
+                              : dietaryPreferences.filter(id => id !== option.id);
+                            setDietaryPreferences(newPreferences);
+                            localStorage.setItem('dietaryPreferences', JSON.stringify(newPreferences));
+                          }}
+                          className="w-5 h-5 text-blue-600 rounded-lg border-gray-300 focus:ring-blue-500"
+                        />
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* About Section */}
+                <div className="p-6">
+                  <h3 className="text-sm font-medium text-gray-500 mb-4">ABOUT</h3>
+                  <div className="space-y-4">
+                    <button className="w-full flex items-center justify-between py-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
+                          <FiInfo className="text-blue-600" />
+                        </div>
+                        <span className="text-gray-700">App Version</span>
+                      </div>
+                      <span className="text-sm text-gray-500">1.0.0</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Bottom Nav */}
@@ -622,6 +789,26 @@ const FridgeAnalyzer: React.FC = () => {
             <span className={`text-xs ${
               currentView === 'history' ? 'text-blue-600' : 'text-gray-600'
             }`}>History</span>
+          </button>
+
+          <button 
+            onClick={() => {
+              setCurrentView('settings');
+              setShowCamera(false);
+              setAnalysis(null);
+            }}
+            className="flex flex-col items-center space-y-1"
+          >
+            <div className={`p-2 rounded-full transition-colors ${
+              currentView === 'settings' ? 'bg-blue-100' : 'hover:bg-gray-100'
+            }`}>
+              <FiSettings className={`text-xl ${
+                currentView === 'settings' ? 'text-blue-600' : 'text-gray-600'
+              }`} />
+            </div>
+            <span className={`text-xs ${
+              currentView === 'settings' ? 'text-blue-600' : 'text-gray-600'
+            }`}>Settings</span>
           </button>
         </div>
       </div>
