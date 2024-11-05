@@ -14,7 +14,9 @@ import {
   FiMoon,
   FiGlobe,
   FiBell,
-  FiFilter
+  FiFilter,
+  FiLoader,
+  FiArrowLeft
 } from 'react-icons/fi';
 import CameraCapture from './CameraCapture';
 import OpenAI from 'openai';
@@ -24,6 +26,7 @@ interface Recipe {
   ingredients: string[];
   instructions: string[];
   cookTime: string;
+  dietaryLabels?: string[];
 }
 
 interface ScanResult {
@@ -67,7 +70,7 @@ const FridgeAnalyzer: React.FC = () => {
   const [showCamera, setShowCamera] = useState(false);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ScanResult | null>(null);
-  const [currentView, setCurrentView] = useState<'home' | 'scan' | 'history' | 'settings'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'scan' | 'history' | 'settings' | 'preferences'>('home');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>(() => {
     const savedHistory = localStorage.getItem('scanHistory');
@@ -104,7 +107,7 @@ const FridgeAnalyzer: React.FC = () => {
             content: [
               {
                 type: "text",
-                text: "Analyze this image for ingredients that could be used in recipes, include all ingredients found irregardless of dietery restrictions. Usually the photo will be of a fridge and you are an expert image analyzer who will look at the entire image and detail all of the ingredients found. From those ingredients, suggest up to 5 possible recipes using only those ingredientsand respond in EXACTLY this format:\n\n" +
+                text: "Analyze this image for ingredients that could be used in recipes, include all ingredients found irregardless of dietery restrictions. Usually the photo will be of a fridge and you are an expert image analyzer who will look at the entire image and detail all of the ingredients found. From those ingredients, suggest up to 5 possible recipes using STRICTLY only those ingredients found in the image. You are also a professional chef and undertstand flavour profiles so all of the recipes you suggest should be tasteful.Lastly, you MUST respond in EXACTLY this format:\n\n" +
                      dietaryString +
                      "FOUND_INGREDIENTS:\n" +
                      "- ingredient1\n" +
@@ -113,9 +116,10 @@ const FridgeAnalyzer: React.FC = () => {
                      "RECIPE_1\n" +
                      "NAME: Recipe Name\n" +
                      "TIME: X minutes\n" +
+                     "DIETARY: Vegetarian, Gluten Free (list ALL applicable dietary labels from user preferences)\n" +
                      "INGREDIENTS:\n" +
                      "- ingredient1\n" +
-                     "- ingredient2\n" +
+                     "- ingredient2\n\n" +
                      "INSTRUCTIONS:\n" +
                      "- First step\n" +
                      "- Second step\n" +
@@ -171,6 +175,7 @@ const FridgeAnalyzer: React.FC = () => {
       result.recipes = recipeBlocks.map(block => {
         const name = block.match(/NAME:\s*(.*)\n/)?.[1]?.trim();
         const time = block.match(/TIME:\s*(.*)\n/)?.[1]?.trim();
+        const dietary = block.match(/DIETARY:\s*(.*)\n/)?.[1]?.trim().split(',').map(d => d.trim()) || [];
         
         const ingredients = block
           .split('INGREDIENTS:')[1]
@@ -191,7 +196,8 @@ const FridgeAnalyzer: React.FC = () => {
           title: name || '',
           cookTime: time || '',
           ingredients,
-          instructions
+          instructions,
+          dietaryLabels: dietary
         };
       }).filter(recipe => recipe.title);
 
@@ -208,7 +214,7 @@ const FridgeAnalyzer: React.FC = () => {
     }
   };
 
-  const handleNavigate = (view: 'home' | 'scan' | 'history' | 'settings') => {
+  const handleNavigate = (view: 'home' | 'scan' | 'history' | 'settings' | 'preferences') => {
     setCurrentView(view);
     if (view === 'scan') {
       setShowCamera(true);
@@ -224,7 +230,8 @@ const FridgeAnalyzer: React.FC = () => {
         title: recipe.title,
         cookTime: recipe.cookTime,
         ingredients: recipe.ingredients,
-        instructions: recipe.instructions
+        instructions: recipe.instructions,
+        dietaryLabels: recipe.dietaryLabels
       }))
     };
     
@@ -390,10 +397,41 @@ const FridgeAnalyzer: React.FC = () => {
         )}
 
         {loading && (
-          <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50">
-            <div className="flex flex-col items-center space-y-4">
-              <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin" />
-              <p className="text-gray-600 font-medium">Analyzing your fridge...</p>
+          <div className="fixed inset-0 bg-white/80 backdrop-blur-sm z-50 
+                          flex items-center justify-center">
+            <div className="bg-white rounded-3xl p-8 shadow-xl max-w-sm w-full mx-4
+                              border border-gray-100">
+              <div className="space-y-6 text-center">
+                {/* Animated Icons */}
+                <div className="relative w-20 h-20 mx-auto">
+                  <div className="absolute inset-0 animate-spin">
+                    <div className="h-full w-full rounded-full border-4 
+                                  border-blue-500 border-t-transparent"></div>
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-2xl">🔍</span>
+                  </div>
+                </div>
+
+                {/* Loading Messages */}
+                <div className="space-y-2">
+                  <h3 className="text-xl font-semibold text-gray-900">
+                    Analyzing Your Ingredients
+                  </h3>
+                  <div className="flex flex-col items-center gap-1">
+                    <LoadingMessage />
+                  </div>
+                </div>
+
+                {/* Progress Indicator */}
+                <div className="space-y-2">
+                  <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full w-2/3 
+                                  animate-[loading_1.5s_ease-in-out_infinite]"></div>
+                  </div>
+                  <p className="text-sm text-gray-500">This may take a moment</p>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -434,41 +472,66 @@ const FridgeAnalyzer: React.FC = () => {
                     Possible Recipes ({analysis.recipes.length})
                   </h2>
                   {analysis.recipes.map((recipe, index) => (
-                    <div key={index}>
-                      <button
-                        onClick={() => {
-                          console.log('Setting selected recipe:', recipe);
-                          setSelectedRecipe(recipe);
-                        }}
-                        className="w-full bg-white/60 backdrop-blur-lg rounded-2xl p-6 shadow-sm 
-                                 hover:shadow-md transition-shadow text-left"
-                      >
-                        <div className="flex justify-between items-start mb-4">
-                          <h3 className="text-xl font-semibold text-gray-900">
-                            {recipe.title}
-                          </h3>
-                          <span className="text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                            {recipe.cookTime}
-                          </span>
-                        </div>
-                        
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-700 mb-2">
-                            Required Ingredients
-                          </h4>
-                          <div className="flex flex-wrap gap-2">
-                            {recipe.ingredients.map((ingredient, i) => (
-                              <span
-                                key={i}
-                                className="px-2 py-1 bg-gray-50 text-gray-600 rounded-lg text-sm"
-                              >
-                                {ingredient}
-                              </span>
-                            ))}
+                    <button
+                      key={index}
+                      onClick={() => {
+                        console.log('Setting selected recipe:', recipe);
+                        setSelectedRecipe(recipe);
+                      }}
+                      className="w-full bg-white rounded-2xl p-6 text-left 
+                                 hover:bg-gray-50 hover:shadow-lg transform 
+                                 hover:-translate-y-0.5 transition-all duration-200 
+                                 ease-in-out border border-gray-100"
+                    >
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="text-xl font-semibold text-gray-900">
+                              {recipe.title}
+                            </h3>
+                            <span className="text-sm text-gray-500 flex items-center gap-1">
+                              <FiClock className="text-blue-500" />
+                              {recipe.cookTime}
+                            </span>
                           </div>
                         </div>
-                      </button>
-                    </div>
+
+                        {/* Dietary Labels - Updated with filter */}
+                        {recipe.dietaryLabels && recipe.dietaryLabels.length > 0 && (
+                          <div className="flex flex-wrap gap-2">
+                            {recipe.dietaryLabels
+                              .filter(label => label.toLowerCase() !== 'non specific')
+                              .map((label, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-1 bg-green-50 text-green-700 
+                                           rounded-full text-xs font-medium"
+                                >
+                                  {label}
+                                </span>
+                            ))}
+                          </div>
+                        )}
+
+                        {/* Ingredients Preview */}
+                        <div className="flex flex-wrap gap-2">
+                          {recipe.ingredients.slice(0, 3).map((ingredient, idx) => (
+                            <span
+                              key={idx}
+                              className="px-3 py-1.5 bg-blue-50 text-blue-600 
+                                       rounded-full text-sm font-medium"
+                            >
+                              {ingredient}
+                            </span>
+                          ))}
+                          {recipe.ingredients.length > 3 && (
+                            <span className="text-sm text-gray-500">
+                              +{recipe.ingredients.length - 3} more
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </button>
                   ))}
                 </div>
               )}
@@ -677,50 +740,26 @@ const FridgeAnalyzer: React.FC = () => {
 
                 {/* Dietary Preferences */}
                 <div className="p-6">
-                  <h3 className="text-sm font-medium text-gray-500 mb-4">DIETARY PREFERENCES</h3>
-                  <div className="space-y-4">
-                    {dietaryOptions.map((option) => (
-                      <label key={option.id} className="flex items-center justify-between py-2">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
-                            <FiFilter className="text-blue-600" />
-                          </div>
-                          <div>
-                            <span className="text-gray-700">{option.label}</span>
-                            <p className="text-xs text-gray-500">{option.description}</p>
-                          </div>
-                        </div>
-                        <input
-                          type="checkbox"
-                          checked={dietaryPreferences.includes(option.id)}
-                          onChange={(e) => {
-                            const newPreferences = e.target.checked
-                              ? [...dietaryPreferences, option.id]
-                              : dietaryPreferences.filter(id => id !== option.id);
-                            setDietaryPreferences(newPreferences);
-                            localStorage.setItem('dietaryPreferences', JSON.stringify(newPreferences));
-                          }}
-                          className="w-5 h-5 text-blue-600 rounded-lg border-gray-300 focus:ring-blue-500"
-                        />
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {/* About Section */}
-                <div className="p-6">
-                  <h3 className="text-sm font-medium text-gray-500 mb-4">ABOUT</h3>
-                  <div className="space-y-4">
-                    <button className="w-full flex items-center justify-between py-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
-                          <FiInfo className="text-blue-600" />
-                        </div>
-                        <span className="text-gray-700">App Version</span>
+                  <h3 className="text-sm font-medium text-gray-500 mb-4">PREFERENCES</h3>
+                  <button
+                    onClick={() => setCurrentView('preferences')}
+                    className="w-full flex items-center justify-between py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-50 rounded-full flex items-center justify-center">
+                        <FiFilter className="text-blue-600" />
                       </div>
-                      <span className="text-sm text-gray-500">1.0.0</span>
-                    </button>
-                  </div>
+                      <div className="flex flex-col items-start">
+                        <span className="text-gray-700">Dietary Preferences</span>
+                        <span className="text-sm text-gray-500">
+                          {dietaryPreferences.length 
+                            ? `${dietaryPreferences.length} selected` 
+                            : 'None selected'}
+                        </span>
+                      </div>
+                    </div>
+                    <FiChevronRight className="text-gray-400" />
+                  </button>
                 </div>
               </div>
             </div>
@@ -873,6 +912,75 @@ const FridgeAnalyzer: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Add new Preferences View */}
+      {currentView === 'preferences' && (
+        <div className="min-h-screen bg-gray-50">
+          {/* Header */}
+          <div className="sticky top-0 bg-white/80 backdrop-blur-lg border-b border-gray-200 z-10">
+            <div className="px-4 py-4 max-w-lg mx-auto flex items-center justify-between">
+              <button
+                onClick={() => setCurrentView('settings')}
+                className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
+              >
+                <FiArrowLeft className="text-xl text-gray-600" />
+              </button>
+              <h1 className="text-lg font-semibold text-gray-900">
+                Dietary Preferences
+              </h1>
+              <div className="w-8" /> {/* Spacer for alignment */}
+            </div>
+          </div>
+
+          {/* Preferences Content */}
+          <div className="max-w-lg mx-auto p-4 space-y-6">
+            {/* Info Card */}
+            <div className="bg-blue-50 rounded-2xl p-4 text-blue-700">
+              <p className="text-sm">
+                Select your dietary preferences below. These will be used to prioritize 
+                suitable recipes when scanning ingredients.
+              </p>
+            </div>
+
+            {/* Preferences List */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
+              {dietaryOptions.map((option, index) => (
+                <label
+                  key={option.id}
+                  className={`flex items-center justify-between p-4 hover:bg-gray-50 
+                             transition-colors cursor-pointer
+                             ${index !== dietaryOptions.length - 1 ? 'border-b border-gray-100' : ''}`}
+                >
+                  <div className="flex flex-col">
+                    <span className="font-medium text-gray-900">{option.label}</span>
+                    <span className="text-sm text-gray-500">{option.description}</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={dietaryPreferences.includes(option.id)}
+                    onChange={(e) => {
+                      const newPreferences = e.target.checked
+                        ? [...dietaryPreferences, option.id]
+                        : dietaryPreferences.filter(id => id !== option.id);
+                      setDietaryPreferences(newPreferences);
+                      localStorage.setItem('dietaryPreferences', JSON.stringify(newPreferences));
+                    }}
+                    className="w-5 h-5 text-blue-600 rounded-lg border-gray-300 
+                               focus:ring-blue-500 transition-colors"
+                  />
+                </label>
+              ))}
+            </div>
+
+            {/* Selected Count */}
+            {dietaryPreferences.length > 0 && (
+              <div className="text-center text-sm text-gray-500">
+                {dietaryPreferences.length} preference{dietaryPreferences.length !== 1 ? 's' : ''} selected
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -889,5 +997,50 @@ const parseRecipes = (markdown: string): Recipe[] => {
   // You'll need to parse the markdown based on your response format
   return [];
 };
+
+// Add this component for rotating loading messages
+const LoadingMessage = () => {
+  const messages = [
+    "Scanning ingredients...",
+    "Finding perfect recipes...",
+    "Checking dietary preferences...",
+    "Creating cooking instructions..."
+  ];
+
+  const [messageIndex, setMessageIndex] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % messages.length);
+    }, 2000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <p className="text-gray-600 min-h-[1.5rem] transition-opacity duration-300">
+      {messages[messageIndex]}
+    </p>
+  );
+};
+
+// Add these styles to your CSS
+const loadingKeyframes = `
+@keyframes loading {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}`;
+
+// Add to your index.css or create a new style tag
+const style = document.createElement('style');
+style.textContent = loadingKeyframes;
+document.head.appendChild(style);
 
 export default FridgeAnalyzer;
