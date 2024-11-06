@@ -79,7 +79,7 @@ const FridgeAnalyzer: React.FC = () => {
   const [showCamera, setShowCamera] = useState(false);
   const [loading, setLoading] = useState(false);
   const [analysis, setAnalysis] = useState<ScanResult | null>(null);
-  const [currentView, setCurrentView] = useState<'home' | 'scan' | 'history' | 'settings' | 'saved' | 'preferences'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'scan' | 'history' | 'settings' | 'saved' | 'preferences' | 'results'>('home');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>(() => {
     const savedHistory = localStorage.getItem('scanHistory');
@@ -213,6 +213,7 @@ const FridgeAnalyzer: React.FC = () => {
       console.log('Parsed result:', result);
       setAnalysis(result);
       saveToHistory(result);
+      setCurrentView('results');
 
     } catch (error) {
       console.error('Analysis error:', error);
@@ -223,7 +224,7 @@ const FridgeAnalyzer: React.FC = () => {
     }
   };
 
-  const handleNavigate = (view: 'home' | 'scan' | 'history' | 'settings' | 'saved' | 'preferences') => {
+  const handleNavigate = (view: 'home' | 'scan' | 'history' | 'settings' | 'saved' | 'preferences' | 'results') => {
     setCurrentView(view);
     if (view === 'scan') {
       setShowCamera(true);
@@ -428,18 +429,28 @@ const FridgeAnalyzer: React.FC = () => {
           </div>
         )}
 
-        {analysis && (
+        {currentView === 'results' && analysis && (
           <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white pb-24">
             {/* Header */}
             <div className="bg-white/80 backdrop-blur-lg sticky top-0 z-40 border-b border-gray-100">
-              <div className="max-w-lg mx-auto px-4 py-4">
+              <div className="max-w-lg mx-auto px-4 py-4 flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setCurrentView('home');
+                    setAnalysis(null);
+                  }}
+                  className="p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                  <FiArrowLeft className="text-xl text-gray-600" />
+                </button>
                 <h1 className="text-xl font-semibold bg-gradient-to-r from-blue-600 to-purple-600 
-                              bg-clip-text text-transparent">
+                      bg-clip-text text-transparent">
                   Scan Results
                 </h1>
               </div>
             </div>
 
+            {/* Results Content */}
             <div className="max-w-lg mx-auto px-4 py-6 space-y-8">
               {/* Found Ingredients Card */}
               <div className="bg-white rounded-2xl shadow-sm border border-gray-100">
